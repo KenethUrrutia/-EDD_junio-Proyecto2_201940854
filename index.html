@@ -22,8 +22,9 @@
         <nav class="nav">
                 <ul>
                     <div class="izquierda">
-                        <li><button  class="active" id="btn-index" > <i class="bi bi-house-fill"></i> Inicio</button></li>
-                        <li><button  id="btn-cargamasiva" ><i class="bi bi-upload"></i> Carga Masiva</button></li>
+                        <li><button  class="active" id="btn-home" > <i class="bi bi-house-fill"></i> Inicio</button></li>
+                        <li><button  id="btn-admin" ><i class="bi bi-person-rolodex"></i> Administrador</button></li>
+                        <li><button  id="btn-user" ><i class="bi bi-person-rolodex"></i> Usuario</button></li>
                     </div>
                     <div class="derecha">
                         <button   id="btn-logout"  >  </button>
@@ -37,7 +38,7 @@
 
     <div id="div-home" class="ventana">
         
-        <div id="div-login" class="ventana">
+        <div id="div-login">
             <div class="card-login">
                 <div class="card-body-login">
                     <h1>LOGIN</h1>
@@ -61,7 +62,7 @@
     </div>
 
     
-    <div id="div-cargas" class="ventana">
+    <div id="div-admin" class="ventana">
         <br>
         <br>
         <table style="width: 100%;">
@@ -106,10 +107,97 @@
                 </td>
             </tr>
         </table>
-    <br>
-    <div class="lienzo" id="lienzo-clientes"></div>
+    <br><br><br>
+
+    <table class="div-descargas">
+        <tr>
+            <td>
+                <div class="card-botones">
+                    <br>
+                    <button id="mostrar-grafo-peliculas" type="button" class="btn-X btn-grafo">Grafo peliculas</button>
+                    <button id="mostrar-grafo-clientes" type="button" class="btn-X btn-grafo">Grafo clientes</button>
+                    <button id="mostrar-grafo-actores" type="button" class="btn-X btn-grafo">Grafo actores</button>
+                    <button id="mostrar-grafo-categorias" type="button" class="btn-X btn-grafo">Grafo categorias</button>
+                </div>
+            </td>
+            <td>
+                <div class="card-lienzo">
+                    <div class="lienzo" id="lienzo"></div>
+                </div>
+            </td>
+            <td>
+                <div class="div-btn-descarga">
+                    <button id="descargarGrafo" type="button" class="btn-X-active">Descargar</button>
+                    <br>
+                    
+                </div>
+            </td>
+        </tr>
+        
+    </table>
+    
     </div>
     
+
+
+    <div id="div-actores" class="ventana">
+        <div class="checklist">
+            <center>
+                <h3> Elija un orden para mostrar</h3>
+            </center>
+                <br>
+                <div class="container-checklist">
+                    <label class="container">PreOrden
+                        <input id="check-pre" type="checkbox" >
+                        <span class="checkmark"></span>
+                    </label>
+                    
+                    <label class="container">InOrden
+                        <input id="check-in" type="checkbox">
+                        <span class="checkmark"></span>
+                    </label>
+                    
+                    <label class="container">PosOrden
+                        <input id="check-pos" type="checkbox">
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+                
+            
+        </div>
+        
+        <div id="tabla-actores" class="container-tabla-actores"></div>
+        
+    </div>
+
+
+
+    <div id="div-user" class="ventana">
+        <div class="container-botones-usuario">
+            <center>
+                <table style="width:75%;">
+                    <tr>
+                        <td>
+                            <label for="cbb-ordenar"> <b>Ordenar </b>
+                            <select id="cbb-ordenar" class="custom-select" style="width:100px;">
+                                <option value="0">A - Z</option>
+                                <option value="1">Z - A</option>
+                            </select>
+                            </label>
+                        </td>
+                        <td>
+                            <button  id="btn-actores" ><i class="bi bi-person-rolodex"></i> Ver Actores</button>
+                            <button  id="btn-categorias" ><i class="bi bi-person-rolodex"></i> Ver Categorias</button>
+                        </td>
+                    </tr>
+                </table>
+            </center>
+        </div>
+
+        <div id="tabla-peliculas" class="container-tabla-actores"></div>
+
+    </div>
+
 
 
     <script src="./index.js"></script>
