@@ -1,9 +1,14 @@
 var isLogeado = false;
 var isAdmin = false;
 var usuarioLogeado = "";
-
+var peliculaActual;
 
 //#region Nodos
+class Coment{
+  constructor(comentario){
+    this.comentario = comentario
+  }
+}
 
 class NodoCliente{
     constructor(cliente){
@@ -22,11 +27,263 @@ class NodoActor{
   }
 }
 
+class NodoPelicula{
+  constructor(pelicula){
+      this.izquierda = null;
+      this.derecha = null;
+      this.pelicula = pelicula;
+      this.altura = 0;
+      this.id = 0;
+      this.comentarios = new Array();
+  }
+}
+
 //#endregion
 
 
 
 //#region Estructuras
+
+class AVLPeliculas{
+
+    constructor(){
+      this.raiz = null
+      this.contador = 0;
+      this.conexiones = ""
+      this.etiquetas = ""
+      this.textoHTML = ""
+      this.peliculaEncontrada = null;
+    }
+    
+    max(hi, hd){
+      if (hi > hd) 
+        return hi
+      return hd
+      
+    }
+    
+    altura(nodo){
+      if (nodo != null) 
+        return nodo.altura
+      return -1
+    }
+    
+    insertar(pelicula){
+      this.raiz = this._insertar(pelicula, this.raiz)
+
+    }
+    
+    _insertar(pelicula, nodo){
+      if(nodo == null) {
+
+        var nuevo = new NodoPelicula(pelicula);
+        nuevo.id = this.contador;
+        this.contador++;
+        return  nuevo
+      }
+
+        
+      else{
+
+        if(pelicula.nombre_pelicula < nodo.pelicula.nombre_pelicula){
+          nodo.izquierda = this._insertar(pelicula, nodo.izquierda)
+          if(this.altura(nodo.derecha)-this.altura(nodo.izquierda) == -2){
+            
+              if(pelicula.nombre_pelicula < nodo.izquierda.pelicula.nombre_pelicula){
+                  nodo = this.RotacionSimpleDerecha(nodo);
+                  
+              }
+              else{
+                  nodo = this.RotacionDobleIzquierda(nodo);
+              }
+              
+          }
+        }else if(pelicula.nombre_pelicula > nodo.pelicula.nombre_pelicula){
+          nodo.derecha = this._insertar(pelicula, nodo.derecha);
+          if(this.altura(nodo.derecha)-this.altura(nodo.izquierda)== 2){
+              
+              if(pelicula.nombre_pelicula > nodo.derecha.pelicula.nombre_pelicula){
+                  nodo = this.RotacionSimpleIzquierda(nodo);
+              }else{
+                  nodo = this.RotacionDobleDerecha(nodo);
+              }
+          }
+        }else{
+            nodo.pelicula = pelicula;
+        }
+      }
+      nodo.altura = this.max(this.altura(nodo.izquierda),this.altura(nodo.derecha))+1
+      return nodo;
+    }
+
+    RotacionSimpleDerecha(nodo){
+      
+        var aux = nodo.izquierda;
+        nodo.izquierda = aux.derecha;
+        aux.derecha = nodo;
+
+        nodo.altura = this.max(this.altura(nodo.derecha),this.altura(nodo.izquierda))+1;
+        aux.altura = this.max(this.altura(nodo.izquierda), nodo.altura)+1;
+        return aux;
+    }
+
+    RotacionSimpleIzquierda(nodo){
+        var aux = nodo.derecha;
+        nodo.derecha = aux.izquierda;
+        aux.izquierda = nodo;
+
+        nodo.altura = this.max(this.altura(nodo.derecha),this.altura(nodo.izquierda))+1;
+        aux.altura = this.max(this.altura(nodo.derecha),nodo.altura)+1;
+        return aux;
+    }
+
+    RotacionDobleDerecha(nodo){
+      nodo.derecha = this.RotacionSimpleDerecha(nodo.derecha);
+      return this.RotacionSimpleIzquierda(nodo);
+    }
+
+    RotacionDobleIzquierda(nodo){
+
+      nodo.izquierda = this.RotacionSimpleIzquierda(nodo.izquierda);
+      return this.RotacionSimpleDerecha(nodo);
+    }
+
+    _tablaAZ(nodo){
+      
+      if(nodo.izquierda!=null){
+      this._tablaAZ(nodo.izquierda)
+      }
+
+      this.textoHTML += `<TR> <td> <h1>` +nodo.pelicula.nombre_pelicula+`</h1></td>`+
+      `<td><b>Descripcion: </b>`+nodo.pelicula.descripcion+`</td>`+
+      `<td><button class="info-peli" id="info-peli" value= "`+nodo.pelicula.nombre_pelicula+`"> <i class="bi bi-question-circle-fill"></i> <br>Informacion</button>    `+
+      `<button class="alquilar-peli" id="alquilar-peli" value= "`+nodo.pelicula.nombre_pelicula+`"><i class="bi bi-cart3"></i><br>Alquilar</button></TD> `+
+      `<td><b> Q`+nodo.pelicula.precion_Q+`.00</b></td></TR>`;
+
+      if (nodo.derecha!=null) {
+      this._tablaAZ(nodo.derecha);
+      }
+    }
+
+    _tablaZA(nodo){
+      if(nodo.derecha!=null){
+        this._tablaZA(nodo.derecha)
+        }
+  
+        this.textoHTML += `<TR> <td> <h1>` +nodo.pelicula.nombre_pelicula+`</h1></td>`+
+        `<td><b>Descripcion: </b>`+nodo.pelicula.descripcion+`</td>`+
+        `<td><button class="info-peli" id="info-peli" value= "`+nodo.pelicula.nombre_pelicula+`"> <i class="bi bi-question-circle-fill"></i> <br>Informacion</button> `+
+        `<button class="alquilar-peli" id="alquilar-peli" value= "`+nodo.pelicula.nombre_pelicula+`"><i class="bi bi-cart3"></i><br>Alquilar</button></TD> `+
+        `<td><b> Q`+nodo.pelicula.precion_Q+`.00</b></td></TR>`;
+  
+        if (nodo.izquierda!=null) {
+        this._tablaZA(nodo.izquierda);
+        }
+    }
+
+    buscarPelicula(nombre_pelicula){
+      this.peliculaEncontrada = null
+      this._buscarPelicula(nombre_pelicula, this.raiz)
+
+      return this.peliculaEncontrada;
+      
+    }
+
+    _buscarPelicula(nombre_pelicula, nodo){
+
+      if(nodo.izquierda!=null){
+        this._buscarPelicula(nombre_pelicula, nodo.izquierda)
+      }
+      if (nombre_pelicula == nodo.pelicula.nombre_pelicula) {
+        this.peliculaEncontrada = nodo;
+      }
+      if (nodo.derecha!=null) {
+        this._buscarPelicula(nombre_pelicula, nodo.derecha);
+      }
+
+
+    }
+
+    cambiarValoracion(nombre_pelicula, valoracion){
+      this._cambiarValoracion(nombre_pelicula, valoracion, this.raiz)
+    }
+
+    _cambiarValoracion(nombre_pelicula, valoracion ,nodo){
+
+      if(nodo.izquierda!=null){
+        this._cambiarValoracion(nombre_pelicula, valoracion, nodo.izquierda)
+      }
+      if (nombre_pelicula == nodo.pelicula.nombre_pelicula) {
+        nodo.pelicula.puntuacion_star = valoracion;
+      }
+      if (nodo.derecha!=null) {
+        this._cambiarValoracion(nombre_pelicula, valoracion, nodo.derecha);
+      }
+
+
+    }
+
+    agregarComentario(nombre_pelicula, comentario){
+      this._agregarComentario(nombre_pelicula, comentario, this.raiz)
+    }
+
+    _agregarComentario(nombre_pelicula, comentario ,nodo){
+
+      if(nodo.izquierda!=null){
+        this._agregarComentario(nombre_pelicula, comentario, nodo.izquierda)
+      }
+      if (nombre_pelicula == nodo.pelicula.nombre_pelicula) {
+        
+          nodo.comentarios.push(comentario);
+        
+        
+      }
+      if (nodo.derecha!=null) {
+        this._agregarComentario(nombre_pelicula, comentario, nodo.derecha);
+      }
+
+
+    }
+
+    _graficar(nodo){
+        
+      if(nodo.izquierda!=null){
+          this._graficar(nodo.izquierda)
+          this.conexiones += `n`+nodo.id+` -> n`+nodo.izquierda.id+ `;\n`;
+      }else{
+          this.etiquetas += `null`+nodo.id+`I [label="null"; shape="none"]\n`;
+          this.conexiones += `n`+nodo.id+` -> null`+nodo.id+ `I;\n`;
+      }
+
+      this.etiquetas += `n`+nodo.id+` [label="`+nodo.pelicula.nombre_pelicula+`"]\n`;
+
+      if (nodo.derecha!=null) {
+          this._graficar(nodo.derecha);
+          this.conexiones += `n`+nodo.id+` -> n`+nodo.derecha.id+ `;\n`;
+      }else{
+          this.etiquetas += `null`+nodo.id+`D [label="null"; shape="none"]\n`;
+          this.conexiones += `n`+nodo.id+` -> null`+nodo.id+ `D;\n`;  
+      }
+    }
+
+    graficar(lienzo){
+      this.etiquetas = "";
+      this.conexiones = ""
+      this._graficar(this.raiz);
+
+      var codigoDot = `digraph G {\n`+this.etiquetas + this.conexiones + `}`
+
+      codigoDot += this.etiquetas + this.conexiones +"}"
+
+      d3.select("#"+lienzo)
+      .graphviz()
+        .height(300)
+        .width(400)
+        .dot(codigoDot)
+        .render();
+
+    }
+}
 
 class ListaClientes{
     constructor(){
@@ -75,7 +332,7 @@ class ListaClientes{
       } else {
           alert("Login Error")
       }
-  }
+    }
 
     graficar(lienzo){
         var codigoDot = `digraph G {\n label = "Clientes"\n node [shape=box]; rankdir=RL; \n  \nnull [label="null"; shape= "none"];\n`;
@@ -191,15 +448,15 @@ class ArbolActores{
 
       d3.select("#"+lienzo)
       .graphviz()
-        .height(400)
-        .width(1000)
+        .height(300)
+        .width(400)
         .dot(codigoDot)
         .render();
 
   }
   
   _tablaPreOrden(nodo){
-    this.textoHTML += `<TR> <td> <b>Nombre actor: </b>` +nodo.actor.nombre_actor+`<br><br>`+
+    this.textoHTML += `<TR> <td> <h2>` +nodo.actor.nombre_actor+`</h2><br>`+
                     `<b>Correo: </b>`+nodo.actor.correo+`<br><br>`+
                     `<b>Descripcion: </b><br>`+nodo.actor.descripcion+`</TD>  </TR>`;
 
@@ -219,7 +476,7 @@ class ArbolActores{
           this._tablaInOrden(nodo.izquierda)
       }
 
-      this.textoHTML += `<TR> <td> <b>Nombre actor: </b>` +nodo.actor.nombre_actor+`<br><br>`+
+      this.textoHTML += `<TR> <td> <h2>` +nodo.actor.nombre_actor+`</h2><br>`+
                               `<b>Correo: </b>`+nodo.actor.correo+`<br><br>`+
                               `<b>Descripcion: </b><br>`+nodo.actor.descripcion+`</TD>  </TR>`;
 
@@ -239,7 +496,7 @@ class ArbolActores{
         this._tablaPosOrden(nodo.derecha);
     }
 
-    this.textoHTML += `<TR> <td> <b>Nombre actor: </b>` +nodo.actor.nombre_actor+`<br><br>`+
+    this.textoHTML += `<TR> <td> <h2>` +nodo.actor.nombre_actor+`</h2><br>`+
                             `<b>Correo: </b>`+nodo.actor.correo+`<br><br>`+
                             `<b>Descripcion: </b><br>`+nodo.actor.descripcion+`</TD>  </TR>`;
 
@@ -313,7 +570,7 @@ function prepararFilePeliculas(file) {
 function cargaMasivaPeliculas(texto) {
     obj=JSON.parse(texto)
     obj.forEach(element => {
-        //estructuraPelis.add(element)
+        avlPeliculas.insertar(element)
         
     });
     inputPeliculas.value = ``;
@@ -358,12 +615,12 @@ function prepararFileClientes(file) {
 function cargaMasivaClientes(texto) {
     obj=JSON.parse(texto)
     obj.forEach(element => {
-        //estructuraClientes.add(element)
-        
+      listaClientes.add(element)    
     });
+
     inputClientes.value = ``;
     
-    alert("Clientes Agregadas")
+    alert("Clientes Agregados")
 }
 
 //#endregion
@@ -478,6 +735,16 @@ function goHome() {
 
   var div = document.getElementById('div-home')
   div.style.display = "block";
+  if (isLogeado==true) {
+    if (isAdmin == true) {
+        goAdmin();
+    }else{ 
+        goUser();
+    }
+  } else {
+    mostrarLogin();
+  }
+  
 
 }
 
@@ -508,14 +775,9 @@ function goUser() {
       element.style.display = "none";
   });
 
-  /*var lienzos = document.querySelectorAll('.lienzo');
-  
-  lienzos.forEach(element => {
-      element.style.display = "none";
-  });
-*/
   var div = document.getElementById('div-user')
   div.style.display = "block";
+  llenarTablaPelis();
 
 }
 
@@ -537,12 +799,60 @@ function goActores() {
 
 }
 
+function goInfoPeli(nombre_pelicula) {
+  var nodoPelicula = avlPeliculas.buscarPelicula(nombre_pelicula);
+  
+  peliculaActual = nodoPelicula;
+  var element = document.getElementById("titulo-peli");
+  element.innerHTML = (nodoPelicula.pelicula.nombre_pelicula);
+
+  element = document.getElementById("descripcion-peli");
+  element.innerHTML = (nodoPelicula.pelicula.descripcion);
+
+  
+
+  var estrellas = document.querySelectorAll("#star")
+  for (let i = 0; i < 5 ; i++) {
+    var estrella = estrellas[i];
+    estrella.classList.remove("checked")
+  }
+  for (let i = 0; i < Math.round(nodoPelicula.pelicula.puntuacion_star) ; i++) {
+    var estrella = estrellas[i];
+    estrella.classList.add("checked")
+  }
+
+
+
+  if (peliculaActual.comentarios!=null) {
+    crearTablaComentarios();
+  }
+
+
+
+
+
+
+  var divTodos = document.querySelectorAll('.ventana');
+  
+  divTodos.forEach(element => {
+      element.style.display = "none";
+  });
+  var div = document.getElementById('div-info-peli')
+  div.style.display = "block";
+
+}
+
 function logout() {
   isLogeado = false
   isAdmin = false;
   usuarioLogeado =""
-  mostrarLogin();
-
+  
+  var divTodos = document.querySelectorAll('.ventana');
+  
+  divTodos.forEach(element => {
+      element.style.display = "none";
+  });
+  goHome();
   
   document.getElementById("btn-logout").style.display = "none";
   alert("Logout Exitoso")
@@ -557,10 +867,10 @@ function logear(nombre_usuario) {
 
   if (checkBox.checked == true) {
       isAdmin = true
-      //vistaAdmin();
+      goAdmin();
   }else{ 
       isAdmin = false
-      //vistaUser();
+      goUser();
   }
 
   var btn = document.getElementById("btn-logout")
@@ -591,8 +901,68 @@ function llamarVerificarLogin() {
   listaClientes.verificarUserYPass();
 }
 
+function llenarTablaPelis() {
+  var select = document.querySelector('#cbb-ordenar')
 
-function llamarTablaActores() {
+  var element = document.getElementById("tabla-peliculas");
+
+  var textoHTML = "";
+
+  if (avlPeliculas.raiz != null) {
+    textoHTML = `<TABLE class="tabla-pelis" >`;
+    avlPeliculas.textoHTML = ""
+    switch (select.selectedIndex) {
+      case 0:
+        avlPeliculas._tablaAZ(avlPeliculas.raiz); 
+        botonesTablaPelis();
+        break;
+        
+    
+      default:
+        botonesTablaPelis();
+        avlPeliculas._tablaZA(avlPeliculas.raiz); 
+        break;
+    }
+    textoHTML += avlPeliculas.textoHTML
+    textoHTML += `</TABLE>`;
+  } else {
+    textoHTML = "<h1>Aun no hay nada que mostrar</h1>"
+  }
+
+  element.innerHTML = textoHTML;
+  botonesTablaPelis();
+}
+
+function botonesTablaPelis() {
+  var btnsInfo = document.querySelectorAll("#info-peli");
+  btnsInfo.forEach(btn => {
+    btn.addEventListener('click', (event) => {
+      console.log(btn.value);
+      goInfoPeli(btn.value);
+    });
+  });
+
+  var btnsAlquilar = document.querySelectorAll("#alquilar-peli");
+  btnsAlquilar.forEach(btn => {
+    btn.addEventListener('click', (event) => {
+      alert(btn.value + " Alquilada ");
+    });
+  });
+
+}
+
+function crearTablaComentarios() {
+  var textoHTML = `<table class="tabla-comentarios">`
+
+  for (let i = 0; i < peliculaActual.comentarios.length; i++) {
+    var coment = peliculaActual.comentarios[i]
+    textoHTML+=`<tr><td><i class="bi bi-caret-right-fill"></i> `+coment.comentario+`</td></tr>`
+    
+  }
+
+  textoHTML+= `</table>`
+
+  document.getElementById("comentarios-recientes").innerHTML = textoHTML;
   
 }
 
@@ -602,8 +972,6 @@ function llamarTablaActores() {
 //#region Botones
 
 
-document.getElementById("btn-user").onclick = goUser;
-document.getElementById("btn-admin").onclick = goAdmin;
 document.getElementById("btn-home").onclick = goHome;
 document.getElementById("btn-actores").onclick = goActores;
 document.getElementById("btn-logear").onclick = llamarVerificarLogin;
@@ -638,6 +1006,8 @@ document.getElementById("mostrar-grafo-peliculas").addEventListener('click', (ev
     element.classList.remove("btn-X-active")
   });
   event.target.classList.add("btn-X-active")
+
+  avlPeliculas.graficar("lienzo")
 
 });
 
@@ -705,6 +1075,25 @@ document.getElementById("check-pos").addEventListener('click', (event) => {
   
 });
 
+document.getElementById("cbb-ordenar").addEventListener('change', llenarTablaPelis);
+
+document.getElementById("btn-valorar").addEventListener('click', (event) => {
+  var numValue = document.getElementById("num-valoracion").value
+  var valoracion = parseFloat((peliculaActual.pelicula.puntuacion_star + parseFloat( numValue))/2);
+  
+  avlPeliculas.cambiarValoracion(peliculaActual.pelicula.nombre_pelicula, valoracion);
+  goInfoPeli(peliculaActual.pelicula.nombre_pelicula);
+} );
+
+document.getElementById("btn-comentar").addEventListener('click', (event) => {
+  var comentario = usuarioLogeado + ": "+ document.getElementById("new-comentario").value
+  
+  avlPeliculas.agregarComentario(peliculaActual.pelicula.nombre_pelicula, new Coment(comentario));
+  goInfoPeli(peliculaActual.pelicula.nombre_pelicula);
+  document.getElementById("new-comentario").value = "";
+} );
+
+
 //#endregion
 
 
@@ -722,7 +1111,7 @@ listaClientes.add({
 
 
 var arbolActores = new ArbolActores();
-
+var avlPeliculas = new AVLPeliculas();
 
 //#endregion
 
@@ -751,6 +1140,14 @@ let save = () => {
     let url = URL.createObjectURL(svgBlob)
 
     triggerDownload(url)
+}
+
+
+var slider = document.getElementById("num-valoracion");
+var output = document.getElementById("valor-valoracion");
+output.innerHTML = slider.value;
+slider.oninput = function() {
+  output.innerHTML = this.value;
 }
 
 

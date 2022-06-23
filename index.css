@@ -459,6 +459,152 @@ input[type=text], input[type=password] {
 
 
 
+.tabla-pelis{
+    width: 80%;
+    border-collapse: collapse;
+    vertical-align: center;
+    padding: 3px;
+    margin: 15px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+.tabla-pelis td{
+    border-collapse: collapse;
+    text-align: justify;
+    vertical-align: center; 
+    padding: 20px;
+    margin: 15px;
+    
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+.tabla-pelis button{
+    align-self: center;
+    margin-left: 15px;
+    margin-right: 15px;
+    font-size: x-small;
+    padding: 0;
+    width: 75px;
+    height: 75px;
+    border-radius: 75%;
+    font-weight: 100;
+    border: #000c3f solid 2px;
+    background-color: transparent;
+    color: #000c3f;
+}
+
+.tabla-pelis button i{
+    font-size: xx-large;
+    width: 30px;
+    height: 30px;
+}
+.tabla-pelis tr:nth-child(even){
+	background-color: #ddd;
+}
+
+.tabla-pelis tr:hover td{
+	background-color: #4b3696;
+	color: white;
+}
+.tabla-pelis tr:hover button{
+	color: rgb(216, 185, 252);
+    border: rgb(216, 185, 252) solid 2px;
+}
+
+
+
+#container-valoracion td{
+    
+    width: 20%;
+}
+
+
+
+.fa {
+    font-size: 25px;
+  }
+  
+  .checked {
+    color: orange;
+  }
+
+#btn-valorar{
+    
+    padding-top: 5px;
+    padding-bottom: 5px;
+    width: 150px;
+
+}
+#num-valoracion{
+    margin-top: auto;
+    margin-bottom: auto;
+    cursor: grab;
+}
+#num-valoracion:active {
+    cursor: grabbing;
+}
+
+
+
+
+
+
+#comentarios , #container-valoracion{
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+    overflow: hidden;
+    margin-left: 25%;
+    margin-right: 25%;
+    box-shadow: 0 .1rem 1rem rgba(0, 0, 0, 0.1);
+    border-radius: 1em;
+    background: #ECE9E6;
+    background: linear-gradient(to right, #FFFFFF, #ECE9E6);
+}
+
+#comentarios-recientes{
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    overflow: hidden;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 .1rem 1rem rgba(0, 0, 0, 0.1);
+    border-radius: 1em;
+    background: #ffffff;
+    border:rgb(12, 12, 12) solid 1px;
+    
+}
+
+#nuevo-comentario input[type=text]{
+    width: 100%;
+}
+
+#descripcion-peli{
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+.tabla-comentarios td{
+    
+    border-radius: 5px;
+    padding: 5px;
+    background-color: rgb(228, 228, 228);
+    
+}
+.tabla-comentarios {
+    border-spacing: 10px;
+    
+}
+
 .lienzo{
         
     margin-left: auto;

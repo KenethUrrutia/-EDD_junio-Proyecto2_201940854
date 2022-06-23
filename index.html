@@ -23,8 +23,7 @@
                 <ul>
                     <div class="izquierda">
                         <li><button  class="active" id="btn-home" > <i class="bi bi-house-fill"></i> Inicio</button></li>
-                        <li><button  id="btn-admin" ><i class="bi bi-person-rolodex"></i> Administrador</button></li>
-                        <li><button  id="btn-user" ><i class="bi bi-person-rolodex"></i> Usuario</button></li>
+                        
                     </div>
                     <div class="derecha">
                         <button   id="btn-logout"  >  </button>
@@ -194,10 +193,57 @@
             </center>
         </div>
 
-        <div id="tabla-peliculas" class="container-tabla-actores"></div>
+        <div id="tabla-peliculas" class="container-tabla-peliculas"></div>
 
     </div>
 
+    <div id="div-info-peli" class="ventana">
+        <br>
+       <center>
+            <h1 id="titulo-peli"></h1>
+            <br>
+            <p id="descripcion-peli"></p>
+            <br><br><br>
+            <div id="container-valoracion"> 
+                <table>
+                    <tr>
+                        <td><center>
+                            <button id="btn-valorar"> Valorar</button>
+                            <input type="range" name="num-valoracion" id="num-valoracion" value="1" min="1" max="5">
+                            <span id="valor-valoracion"></span>
+                        </center></td>
+                        <td><center>
+                            <span class="fa fa-star" id="star"></span>
+                            <span class="fa fa-star" id="star"></span>
+                            <span class="fa fa-star" id="star"></span>
+                            <span class="fa fa-star" id="star"></span>
+                            <span class="fa fa-star" id="star"></span>
+                        </center></td>
+                    </tr>
+                </table>
+
+                
+            </div>
+            <br><br>
+            <div id="comentarios">
+                <center>
+                    <h3>Comentarios Recientes</h3>
+                    <div id="comentarios-recientes"></div>
+                </center>
+                <br><br>
+                <div id="nuevo-comentario"> 
+                    <table style="width: 100%;">
+                        <tr>
+                            <td>
+                                <input type="text" id="new-comentario" minlength="1" placeholder="Ingrese su comentario">
+                                <button id="btn-comentar"> Publicar</button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </center>
+    </div>
 
 
     <script src="./index.js"></script>
