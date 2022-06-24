@@ -3,6 +3,11 @@ var isAdmin = false;
 var usuarioLogeado = "";
 var peliculaActual;
 
+
+
+
+
+
 //#region Nodos
 class Coment{
   constructor(comentario){
@@ -38,11 +43,197 @@ class NodoPelicula{
   }
 }
 
+class NodoIndiceHash{
+  constructor(index){
+    this.index = index;
+    this.siguiente = null;
+    this.abajo  = null;
+  }
+}
+
+class NodoCategoria{
+    constructor(categoria){
+      this.id = 0;
+      this.categoria = categoria
+      this.siguiente = null;
+    }
+}
+
 //#endregion
 
 
 
 //#region Estructuras
+
+class IndiceHashCategorias{
+  constructor(posiciones){
+    this.cabeza = null;
+    this.elementos = 0;
+    this.crear(posiciones);
+  }
+
+  crear(posiciones){
+    
+    for (let i = 0; i < posiciones; i++) {
+      var temporal = new NodoIndiceHash(i);
+        if (this.cabeza != null) {
+          temporal.abajo = this.cabeza;
+          this.cabeza = temporal;
+        }else{
+          this.cabeza = temporal
+        }
+    }
+  }
+
+  insertarSiguiente(index, categoria){
+    var temporal = this.cabeza;
+
+    while (temporal != null) {
+      
+      if (temporal.index == index) {
+        var temporalCategoria = temporal.siguiente;
+
+        if (temporalCategoria == null) {
+          var nuevo  = new NodoCategoria(categoria);
+          temporal.siguiente = nuevo;
+          this.elementos++;
+
+          return;
+        } else {
+
+          while (temporalCategoria != null) {
+            if (temporalCategoria.siguiente == null) {
+              var nuevo  = new NodoCategoria(categoria);
+              nuevo.id = temporalCategoria.id+1;
+              temporalCategoria.siguiente = nuevo;
+              this.elementos++;
+              return
+            } else {
+              temporalCategoria = temporalCategoria.siguiente;
+            }
+          }
+
+        }
+      } 
+
+      temporal = temporal.abajo
+    }
+    
+
+  }
+
+}
+
+class HashCategorias{
+  constructor(posiciones){
+    this.posiciones = posiciones;
+    this.indice = new IndiceHashCategorias(posiciones);
+  }
+
+  add(categoria){
+    var indexCategoria = (categoria.id_categoria % this.posiciones);
+    this.indice.insertarSiguiente(indexCategoria, categoria);
+
+    if (this.indice.elementos/this.posiciones > 0.75) {
+      this.rehashing()
+    }
+
+  }
+
+  rehashing(){
+    this.posiciones = this.posiciones+5;
+    var nuevoIndice = new IndiceHashCategorias(this.posiciones) ;
+
+    var tempoIndice = this.indice.cabeza;
+    while(tempoIndice!=null){
+      var temporalCategoria = tempoIndice.siguiente;
+
+
+      while (temporalCategoria != null) {
+        var categoria = temporalCategoria.categoria;
+        var indexCategoria = (categoria.id_categoria % this.posiciones);
+        nuevoIndice.insertarSiguiente(indexCategoria, categoria);
+          
+        temporalCategoria = temporalCategoria.siguiente
+      }
+
+
+      tempoIndice = tempoIndice.abajo;
+    }
+    this.indice = nuevoIndice;
+
+  }
+
+  crearTablaCategorias(){
+    var textoHTML = `<TABLE class="tabla-pelis" >`;
+
+    var tempoIndice = this.indice.cabeza;
+    while(tempoIndice!=null){
+      
+      var temporalCategoria = tempoIndice.siguiente;
+
+      while (temporalCategoria != null) {
+        textoHTML += `<TR> <td> <b>`+temporalCategoria.categoria.company+`</b><br> `+temporalCategoria.categoria.id_categoria+`</td></TR>`;
+        temporalCategoria = temporalCategoria.siguiente
+      }
+      tempoIndice = tempoIndice.abajo;
+    }
+    textoHTML += `</table>`;
+
+    var element = document.getElementById("tabla-categorias");
+    element.innerHTML = textoHTML;
+  }
+
+  graficar(lienzo){
+    var codigoDot = `digraph G {\nnode [shape=box height = 0.8];\nrankdir =LR\nnodesep=0;\n`;
+    var etiquetas = "";
+    var conexiones = "";
+    var indices = ""
+
+    var tempoIndice = this.indice.cabeza;
+    while(tempoIndice!=null){
+      indices += tempoIndice.index + `\n`;
+      let indexIndice = tempoIndice.index;
+      var temporalCategoria = tempoIndice.siguiente;
+
+      
+      if (temporalCategoria != null) {
+        let idCategoria = temporalCategoria.id;
+        
+        etiquetas += `I`+indexIndice+`C`+ idCategoria +` [label = "`+temporalCategoria.categoria.company+`" height = 0.1 width= 2] \n`;
+        conexiones += indexIndice + ` -> I`+indexIndice+`C`+idCategoria +`\n` ;
+      }
+
+      while (temporalCategoria != null) {
+        if (temporalCategoria.siguiente != null) {
+          let idCategoria = temporalCategoria.id;
+          let idCategoriaSig = temporalCategoria.siguiente.id;
+
+          etiquetas += `I`+indexIndice+`C`+idCategoriaSig+ ` [label = "`+temporalCategoria.categoria.company+`" height = 0.1 width= 2] \n`;
+          conexiones += `I`+indexIndice+`C`+idCategoria + ` -> I`+indexIndice+`C`+idCategoriaSig +`\n` ;
+        }
+          
+          
+          temporalCategoria = temporalCategoria.siguiente
+      }
+
+
+      tempoIndice = tempoIndice.abajo;
+    }
+
+    codigoDot += indices + etiquetas + conexiones + `\n}`
+
+    console.log(codigoDot);
+    d3.select("#"+lienzo)
+      .graphviz()
+        .height(550)
+        .width(800)
+        .dot(codigoDot)
+        .render();
+    console.log(this.indice.elementos);
+
+  }
+}
 
 class AVLPeliculas{
 
@@ -277,8 +468,8 @@ class AVLPeliculas{
 
       d3.select("#"+lienzo)
       .graphviz()
-        .height(300)
-        .width(400)
+        .height(550)
+        .width(800)
         .dot(codigoDot)
         .render();
 
@@ -327,7 +518,6 @@ class ListaClientes{
           temporal = temporal.siguiente;
       }
       if (resultado) {
-          alert("Login Exitoso ")
           logear(user);
       } else {
           alert("Login Error")
@@ -357,8 +547,8 @@ class ListaClientes{
         console.log(codigoDot);
         d3.select("#"+lienzo)
         .graphviz()
-          .height(300)
-          .width(400)
+          .height(550)
+          .width(800)
           .dot(codigoDot)
           .render();
 
@@ -448,8 +638,8 @@ class ArbolActores{
 
       d3.select("#"+lienzo)
       .graphviz()
-        .height(300)
-        .width(400)
+        .height(550)
+        .width(800)
         .dot(codigoDot)
         .render();
 
@@ -705,11 +895,11 @@ function prepararFileCategorias(file) {
 function cargaMasivaCategorias(texto) {
     obj=JSON.parse(texto)
     obj.forEach(element => {
-        //estructuraCategorias.add(element)
+        hashCategorias.add(element)
         
     });
     inputClientes.value = ``;
-    
+    console.log(hashCategorias);
     alert("Categorias Agregadas")
 }
 
@@ -799,6 +989,21 @@ function goActores() {
 
 }
 
+function goCategorias() {
+  
+  var divTodos = document.querySelectorAll('.ventana');
+  
+  divTodos.forEach(element => {
+      element.style.display = "none";
+  });
+
+  hashCategorias.crearTablaCategorias();
+
+  var div = document.getElementById('div-categorias')
+  div.style.display = "block";
+
+}
+
 function goInfoPeli(nombre_pelicula) {
   var nodoPelicula = avlPeliculas.buscarPelicula(nombre_pelicula);
   
@@ -866,17 +1071,28 @@ function logear(nombre_usuario) {
   var checkBox = document.getElementById("check-admin");
 
   if (checkBox.checked == true) {
-      isAdmin = true
-      goAdmin();
+      if (nombre_usuario == "EDD") {
+        isAdmin = true
+        alert("Login Exitoso ")
+        goAdmin();
+        var btn = document.getElementById("btn-logout")
+        btn.innerHTML  = `<i class="bi bi-box-arrow-left"></i> `+nombre_usuario;
+        btn.style.display = "block";
+        ocultarLogin();
+      }else{
+        alert("Error: no tiene acceso a administrador");
+      }
   }else{ 
       isAdmin = false
+      alert("Login Exitoso ")
       goUser();
+      var btn = document.getElementById("btn-logout")
+      btn.innerHTML  = `<i class="bi bi-box-arrow-left"></i> `+nombre_usuario;
+      btn.style.display = "block";
+      ocultarLogin();
   }
 
-  var btn = document.getElementById("btn-logout")
-  btn.innerHTML  = `<i class="bi bi-box-arrow-left"></i> `+nombre_usuario;
-  btn.style.display = "block";
-  ocultarLogin();
+  
 
 }
 
@@ -966,6 +1182,32 @@ function crearTablaComentarios() {
   
 }
 
+let triggerDownload = (imgURI, fileName) => {
+  let a = document.createElement('a')
+
+  a.setAttribute('download', 'image.svg')
+  a.setAttribute('href', imgURI)
+  a.setAttribute('target', '_blank')
+
+  a.click()
+}
+
+let save = () => {
+let svg = document.querySelector('svg')
+  let data = (new XMLSerializer()).serializeToString(svg)
+  let svgBlob = new Blob([data], {type: 'image/png+xml;charset=utf-8'})
+  let url = URL.createObjectURL(svgBlob)
+
+  triggerDownload(url)
+}
+
+var slider = document.getElementById("num-valoracion");
+var output = document.getElementById("valor-valoracion");
+output.innerHTML = slider.value;
+slider.oninput = function() {
+  output.innerHTML = this.value;
+}
+
 //#endregion
 
 
@@ -974,6 +1216,7 @@ function crearTablaComentarios() {
 
 document.getElementById("btn-home").onclick = goHome;
 document.getElementById("btn-actores").onclick = goActores;
+document.getElementById("btn-categorias").onclick = goCategorias;
 document.getElementById("btn-logear").onclick = llamarVerificarLogin;
 document.getElementById("btn-logout").onclick = logout;
 
@@ -1018,6 +1261,8 @@ document.getElementById("mostrar-grafo-categorias").addEventListener('click', (e
     element.classList.remove("btn-X-active")
   });
   event.target.classList.add("btn-X-active")
+
+  hashCategorias.graficar("lienzo");
 
 });
 
@@ -1093,25 +1338,25 @@ document.getElementById("btn-comentar").addEventListener('click', (event) => {
   document.getElementById("new-comentario").value = "";
 } );
 
+document.getElementById("descargarGrafo").addEventListener('click', save);
 
 //#endregion
 
 
 
 //#region variables
+var hashCategorias =  new HashCategorias(20);
+var arbolActores = new ArbolActores();
+var avlPeliculas = new AVLPeliculas();
 var listaClientes = new ListaClientes();
 listaClientes.add({
     "dpi":2354168452525, 
-    "nombre_completo": "WIlfred Perez", 
-    "nombre_usuario": "Wilfred",
+    "nombre_completo": "Wilfred Perez", 
+    "nombre_usuario": "EDD",
     "correo":"",
     "contrasenia": "123",
     "telefono": "+502 (123) 123-4567"
 });
-
-
-var arbolActores = new ArbolActores();
-var avlPeliculas = new AVLPeliculas();
 
 //#endregion
 
@@ -1123,33 +1368,11 @@ document.getElementById("btn-logout").style.display = "none";
 
 
 
-let triggerDownload = (imgURI, fileName) => {
-    let a = document.createElement('a')
-
-    a.setAttribute('download', 'image.svg')
-    a.setAttribute('href', imgURI)
-    a.setAttribute('target', '_blank')
-
-    a.click()
-}
-
-let save = () => {
-  let svg = document.querySelector('svg')
-    let data = (new XMLSerializer()).serializeToString(svg)
-    let svgBlob = new Blob([data], {type: 'image/png+xml;charset=utf-8'})
-    let url = URL.createObjectURL(svgBlob)
-
-    triggerDownload(url)
-}
 
 
-var slider = document.getElementById("num-valoracion");
-var output = document.getElementById("valor-valoracion");
-output.innerHTML = slider.value;
-slider.oninput = function() {
-  output.innerHTML = this.value;
-}
 
 
-let btn = document.getElementById("descargarGrafo")
-btn.addEventListener('click', save);
+
+
+
+
