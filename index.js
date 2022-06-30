@@ -3,9 +3,10 @@ var isAdmin = false;
 var usuarioLogeado = "";
 var peliculaActual;
 
-var index=0;
+var index = 0;
 var cantMerkle = 0;
-
+var contadorAlquilados = 0;
+var contadorBloquesTransaccion = 0;
 var currentTime = new Date();
 
 
@@ -159,8 +160,8 @@ class NodoPelicula{
 }
 
 class NodoIndiceHash{
-  constructor(indice){
-    this.indice = indice;
+  constructor(index){
+    this.index = index;
     this.siguiente = null;
     this.abajo  = null;
   }
@@ -236,7 +237,7 @@ class BlockChain{
     tempo.hash = hash
     tempo.siguiente = this.cabeza;
     this.cabeza = tempo;
-    this.contadorBloques ++;
+    
   }
 
   graficar(){
@@ -246,7 +247,7 @@ class BlockChain{
     var tempo = this.cabeza;
     var contador = this.contadorBloques;
 
-    while (tempo != null) {
+    while (tempo != null && contador>0) {
       etiquetas += `B`+contador+` [label = " Bloque `+ contador +`| Hash: `+tempo.hash+` | Previous: `+tempo.previous+` | RootMerkle: `+tempo.rootMerkle+` | Transacciones:\n `+tempo.data+` | Fecha: `+ tempo.timeStamp+`" ];\n` ;
 
       if (tempo.siguiente != null) {
@@ -461,7 +462,7 @@ class HashCategorias{
     this.indice.insertarSiguiente(indexCategoria, categoria);
 
     if (this.indice.elementos/this.posiciones > 0.75) {
-      this.rehashing()
+      //this.rehashing()
     }
 
   }
@@ -491,6 +492,9 @@ class HashCategorias{
   }
 
   crearTablaCategorias(){
+
+
+    
     var textoHTML = `<TABLE class="tabla-pelis" >`;
 
     var tempoIndice = this.indice.cabeza;
@@ -560,6 +564,7 @@ class HashCategorias{
 
   }
 }
+
 
 class AVLPeliculas{
 
@@ -1260,7 +1265,6 @@ function cargaMasivaCategorias(texto) {
     obj=JSON.parse(texto)
     obj.forEach(element => {
         hashCategorias.add(element)
-        
     });
     inputClientes.value = ``;
     console.log(hashCategorias);
@@ -1489,8 +1493,17 @@ function ocultarLogin() {
 
 //#region Llamadas Botones
 function generarBloque() {
-  if (blockChain.contadorBloques < merkleData.datablock.length) {
-    blockChain.add((merkleData.datablock[blockChain.contadorBloques]).valor);
+  if (contadorBloquesTransaccion <= contadorAlquilados && blockChain.contadorBloques < merkleData.datablock.length) {
+    var valor = (merkleData.datablock[contadorBloquesTransaccion]).valor
+    if (valor.toString().substring(0,2) != `00`) {
+      blockChain.add(valor);
+    }else{
+      blockChain.add("Sin Transacciones");
+
+    }
+    contadorBloquesTransaccion++;
+    blockChain.contadorBloques++;
+    
   } else {
     blockChain.add("Sin Transacciones");
   }
@@ -1560,8 +1573,9 @@ function botonesTablaPelis() {
       merkleData.add(usuarioLogeado + `-` + btn.value);
       merkleData.auth();
       merkleData.graficar();
-      //avlPeliculas = avlPeliculas.remove(btn.value);
       btn.disabled = true;
+      contadorAlquilados++;
+      
       alert(btn.value + "Pelicula Alquilada ");
 
     });
@@ -1690,12 +1704,20 @@ document.getElementById("check-pre").addEventListener('click', (event) => {
       document.getElementById("check-in").checked = false;
       document.getElementById("check-pos").checked = false;
 
+      var textoHTML =""
       var element = document.getElementById("tabla-actores");
-      var textoHTML = `<TABLE class="tabla-tabla" >`;
-      arbolActores.textoHTML = ""
-      arbolActores._tablaPreOrden(arbolActores.raiz)
-      textoHTML += arbolActores.textoHTML
-      textoHTML += `</TABLE>`;
+
+      if (arbolActores.raiz != null) {
+        textoHTML = `<TABLE class="tabla-tabla" >`;
+        arbolActores.textoHTML = ""
+        arbolActores._tablaPreOrden(arbolActores.raiz)
+        textoHTML += arbolActores.textoHTML
+        textoHTML += `</TABLE>`;
+      } else {
+        textoHTML = "<h1>Aun no hay nada que mostrar</h1>"
+      }
+
+      
 
       element.innerHTML = textoHTML;
       
@@ -1706,15 +1728,19 @@ document.getElementById("check-in").addEventListener('click', (event) => {
      event.target.checked = true;
      document.getElementById("check-pre").checked = false;
      document.getElementById("check-pos").checked = false;
-     
 
+     var textoHTML = ""
      var element = document.getElementById("tabla-actores");
-      var textoHTML = `<TABLE class="tabla-tabla" >`;
-      arbolActores.textoHTML = ""
-      arbolActores._tablaInOrden(arbolActores.raiz);
-      textoHTML += arbolActores.textoHTML
-      textoHTML += `</TABLE>`;
 
+     if (arbolActores.raiz != null) {
+        textoHTML = `<TABLE class="tabla-tabla" >`;
+        arbolActores.textoHTML = ""
+        arbolActores._tablaInOrden(arbolActores.raiz);
+        textoHTML += arbolActores.textoHTML
+        textoHTML += `</TABLE>`;
+    } else {
+      textoHTML = "<h1>Aun no hay nada que mostrar</h1>"
+    }
       element.innerHTML = textoHTML;
   
 });
@@ -1725,12 +1751,19 @@ document.getElementById("check-pos").addEventListener('click', (event) => {
      document.getElementById("check-pre").checked = false;
      document.getElementById("check-in").checked = false;
 
-     var element = document.getElementById("tabla-actores");
-      var textoHTML = `<TABLE class="tabla-tabla" >`;
-      arbolActores.textoHTML = ""
-      arbolActores._tablaPosOrden(arbolActores.raiz)
-      textoHTML += arbolActores.textoHTML
-      textoHTML += `</TABLE>`;
+
+    var textoHTML =""
+    var element = document.getElementById("tabla-actores");
+
+      if (arbolActores.raiz != null) {
+        textoHTML = `<TABLE class="tabla-tabla" >`;
+        arbolActores.textoHTML = ""
+        arbolActores._tablaPosOrden(arbolActores.raiz)
+        textoHTML += arbolActores.textoHTML
+        textoHTML += `</TABLE>`;
+      } else {
+        textoHTML = "<h1>Aun no hay nada que mostrar</h1>"
+      }
 
       element.innerHTML = textoHTML;
   
