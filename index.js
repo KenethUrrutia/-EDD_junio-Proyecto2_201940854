@@ -3,10 +3,125 @@ var isAdmin = false;
 var usuarioLogeado = "";
 var peliculaActual;
 
+var index=0;
+var cantMerkle = 0;
+
+var currentTime = new Date();
 
 
+var tiempoGen = 100;
+var cuentaAtras = 100;
 
+function sha256(ascii) {
+	function rightRotate(value, amount) {
+		return (value>>>amount) | (value<<(32 - amount));
+	};
+	
+	var mathPow = Math.pow;
+	var maxWord = mathPow(2, 32);
+	var lengthProperty = 'length'
+	var i, j; // Used as a counter across the whole file
+	var result = ''
 
+	var words = [];
+	var asciiBitLength = ascii[lengthProperty]*8;
+	
+	//* caching results is optional - remove/add slash from front of this line to toggle
+	// Initial hash value: first 32 bits of the fractional parts of the square roots of the first 8 primes
+	// (we actually calculate the first 64, but extra values are just ignored)
+	var hash = sha256.h = sha256.h || [];
+	// Round constants: first 32 bits of the fractional parts of the cube roots of the first 64 primes
+	var k = sha256.k = sha256.k || [];
+	var primeCounter = k[lengthProperty];
+	/*/
+	var hash = [], k = [];
+	var primeCounter = 0;
+	//*/
+
+	var isComposite = {};
+	for (var candidate = 2; primeCounter < 64; candidate++) {
+		if (!isComposite[candidate]) {
+			for (i = 0; i < 313; i += candidate) {
+				isComposite[i] = candidate;
+			}
+			hash[primeCounter] = (mathPow(candidate, .5)*maxWord)|0;
+			k[primeCounter++] = (mathPow(candidate, 1/3)*maxWord)|0;
+		}
+	}
+	
+	ascii += '\x80' // Append Ƈ' bit (plus zero padding)
+	while (ascii[lengthProperty]%64 - 56) ascii += '\x00' // More zero padding
+	for (i = 0; i < ascii[lengthProperty]; i++) {
+		j = ascii.charCodeAt(i);
+		if (j>>8) return; // ASCII check: only accept characters in range 0-255
+		words[i>>2] |= j << ((3 - i)%4)*8;
+	}
+	words[words[lengthProperty]] = ((asciiBitLength/maxWord)|0);
+	words[words[lengthProperty]] = (asciiBitLength)
+	
+	// process each chunk
+	for (j = 0; j < words[lengthProperty];) {
+		var w = words.slice(j, j += 16); // The message is expanded into 64 words as part of the iteration
+		var oldHash = hash;
+		// This is now the undefinedworking hash", often labelled as variables a...g
+		// (we have to truncate as well, otherwise extra entries at the end accumulate
+		hash = hash.slice(0, 8);
+		
+		for (i = 0; i < 64; i++) {
+			var i2 = i + j;
+			// Expand the message into 64 words
+			// Used below if 
+			var w15 = w[i - 15], w2 = w[i - 2];
+
+			// Iterate
+			var a = hash[0], e = hash[4];
+			var temp1 = hash[7]
+				+ (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25)) // S1
+				+ ((e&hash[5])^((~e)&hash[6])) // ch
+				+ k[i]
+				// Expand the message schedule if needed
+				+ (w[i] = (i < 16) ? w[i] : (
+						w[i - 16]
+						+ (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15>>>3)) // s0
+						+ w[i - 7]
+						+ (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2>>>10)) // s1
+					)|0
+				);
+			// This is only used once, so *could* be moved below, but it only saves 4 bytes and makes things unreadble
+			var temp2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22)) // S0
+				+ ((a&hash[1])^(a&hash[2])^(hash[1]&hash[2])); // maj
+			
+			hash = [(temp1 + temp2)|0].concat(hash); // We don't bother trimming off the extra ones, they're harmless as long as we're truncating when we do the slice()
+			hash[4] = (hash[4] + temp1)|0;
+		}
+		
+		for (i = 0; i < 8; i++) {
+			hash[i] = (hash[i] + oldHash[i])|0;
+		}
+	}
+	
+	for (i = 0; i < 8; i++) {
+		for (j = 3; j + 1; j--) {
+			var b = (hash[i]>>(j*8))&255;
+			result += ((b < 16) ? 0 : '') + b.toString(16);
+		}
+	}
+	return result;
+};
+
+function menorA10(num) {
+  if (num<10) {
+    return `0`+num;
+  }
+  return num
+}
+
+function getTime() {
+  var currentTime = new Date();
+  var time = menorA10(currentTime.getUTCDate()) + `-` + menorA10(currentTime.getMonth()) + `-` + (currentTime.getUTCFullYear()).toString().substring(2,4) + `-::` + menorA10(currentTime.getHours()) + `:` + menorA10(currentTime.getMinutes()) + `:` + menorA10(currentTime.getSeconds());
+  return time;
+}
+ 
 
 //#region Nodos
 class Coment{
@@ -44,8 +159,8 @@ class NodoPelicula{
 }
 
 class NodoIndiceHash{
-  constructor(index){
-    this.index = index;
+  constructor(indice){
+    this.indice = indice;
     this.siguiente = null;
     this.abajo  = null;
   }
@@ -59,11 +174,222 @@ class NodoCategoria{
     }
 }
 
+class NodoData{
+  constructor(valor){
+    this.valor = valor;
+    
+    this.id = 0;
+  }
+}
+
+class NodoMerckle{
+  constructor(hash){
+    this.hash = hash;
+    this.izquierda = null;
+    this.derecha = null;
+  }
+}
+
+class Bloque{
+  constructor(){
+    this.timeStamp;
+    this.data = "";
+    this.nonce = 0;
+    this.previous = "00";
+    this.rootMerkle = null;
+    this.hash = "";
+    this.siguiente = null
+  }
+}
+
 //#endregion
 
 
 
 //#region Estructuras
+
+class BlockChain{
+  constructor(){
+    this.cabeza = null;
+    this.contadorBloques = 0;
+  }
+
+  add(data){
+    var tempo = new Bloque();
+    tempo.timeStamp = getTime();
+    tempo.data = data;
+    tempo.nonce = 0;
+    if (this.cabeza!=null) {
+      tempo.previous = this.cabeza.hash;
+    }
+    if (merkleData.tophash!=null) {
+      tempo.rootMerkle = merkleData.tophash.hash;
+    }else{
+      tempo.rootMerkle = `00x`
+    }
+    var hash = `XXXX`;
+    while (hash.substring(0, 2) != `00`) {
+      hash = sha256(this.contadorBloques+tempo.timeStamp+tempo.previous+tempo.rootMerkle+tempo.nonce)
+      tempo.nonce++;
+    }
+
+    tempo.hash = hash
+    tempo.siguiente = this.cabeza;
+    this.cabeza = tempo;
+    this.contadorBloques ++;
+  }
+
+  graficar(){
+    var codigoDot = `digraph G { \n rankdir=LR;node [shape = record; width = 8;];\n`
+    var conexiones = "";
+    var etiquetas = "";
+    var tempo = this.cabeza;
+    var contador = this.contadorBloques;
+
+    while (tempo != null) {
+      etiquetas += `B`+contador+` [label = " Bloque `+ contador +`| Hash: `+tempo.hash+` | Previous: `+tempo.previous+` | RootMerkle: `+tempo.rootMerkle+` | Transacciones:\n `+tempo.data+` | Fecha: `+ tempo.timeStamp+`" ];\n` ;
+
+      if (tempo.siguiente != null) {
+        conexiones += `B`+contador + ` -> B`+ (contador-1) +`;\n`;
+      }
+
+      contador--;
+      tempo = tempo.siguiente
+    }
+    codigoDot += etiquetas + conexiones + `\n } \n`
+    
+    console.log(codigoDot);
+    d3.select("#lienzoBlockChain")
+      .graphviz()
+        .height(550)
+        .width(1200)
+        .dot(codigoDot)
+        .render();
+  }
+
+}
+
+
+class Merkle {
+  constructor() {
+    this.tophash = null
+    this.datablock = []  
+    this.etiquetas = "";
+    this.conexiones = "";
+    this.contador = 0;
+  }
+
+  add(data){
+    var nuevo = new NodoData(data);
+    nuevo.id = this.contador;
+    this.contador++;
+    this.datablock.push(nuevo)
+  }
+  
+  createTree(exponente) {
+    this.tophash = new NodoMerckle(0)
+    this._createTree(this.tophash, exponente )
+  }
+
+  _createTree(tmp, exponente) {
+    if (exponente > 0) {
+      tmp.izquierda = new NodoMerckle(0)
+      tmp.derecha = new NodoMerckle(0)
+      this._createTree(tmp.izquierda, exponente - 1)
+      this._createTree(tmp.derecha, exponente - 1)
+    }
+  }
+
+  genHash(tmp, n) { // postorder
+    if (tmp != null) {
+      this.genHash(tmp.izquierda, n)
+      this.genHash(tmp.derecha, n)
+      
+      if (tmp.izquierda == null && tmp.derecha == null) {
+        var datanode = this.datablock[n-index--];
+        tmp.izquierda = datanode;
+        tmp.hash = sha256((datanode.valor).toString());
+      } else {
+        tmp.hash = sha256((tmp.izquierda.hash).toString() + (tmp.derecha.hash).toString())
+      }      
+    }
+  }
+
+  preorder(tmp) {
+    cantMerkle = 0;
+    if (tmp != null) {
+      if (tmp instanceof NodoData) {
+        console.log(tmp.valor);
+        if ((tmp.valor).toString().substring(0,2) != `00`) {
+          cantMerkle++;
+        }
+      } else {
+        console.log(tmp.hash);
+      }
+      this.preorder(tmp.izquierda)
+      this.preorder(tmp.derecha)
+    }
+  }
+
+  auth() {
+    var exponente = 1
+    while (Math.pow(2, exponente) < this.datablock.length) {
+      exponente += 1
+    }
+    for (var i = this.datablock.length; i < Math.pow(2, exponente); i++) {
+      var nuevo = new NodoData(`00`+i);
+      nuevo.id = this.contador;
+      this.contador++;
+      this.datablock.push(nuevo)
+    }
+    index = Math.pow(2, exponente)
+    this.createTree(exponente)
+    this.genHash(this.tophash, Math.pow(2, exponente))
+    this.preorder(this.tophash)   
+    this.graficar(); 
+  }
+
+  graficar(){
+    var codigoDot = `digraph G { \n rankdir = BT; ranksep=2; node [shape = box; width = 7;];\n`
+    this.conexiones = "";
+    this.etiquetas = "";
+
+    this._graficar(this.tophash);
+
+    codigoDot += this.etiquetas + this.conexiones + `\n } \n`
+    
+    console.log(codigoDot);
+    d3.select("#lienzoMerkle")
+      .graphviz()
+        .height(550)
+        .width(800)
+        .dot(codigoDot)
+        .render();
+
+
+  }
+
+
+  _graficar(tmp){
+    if (tmp != null) {
+      this._graficar(tmp.izquierda)
+      if (tmp.izquierda != null){
+        if (tmp.izquierda instanceof NodoData) {
+          this.etiquetas += `N`+tmp.izquierda.id + ` [label="`+tmp.izquierda.valor+`"; width = 2;];\n`
+          this.conexiones += `N`+tmp.izquierda.id + ` -> "` + tmp.hash +`";\n`
+        }
+      }
+      if (tmp.izquierda instanceof NodoMerckle) {
+        if (tmp.derecha != null) this.conexiones += `"`+tmp.derecha.hash + `" -> "` + tmp.hash +`"; \n`;
+        if (tmp.izquierda != null)  this.conexiones += `"`+tmp.izquierda.hash + `" -> "` + tmp.hash +`"; \n`;
+        
+      }
+      
+      this._graficar(tmp.derecha)
+    }
+  }
+
+}
 
 class IndiceHashCategorias{
   constructor(posiciones){
@@ -244,6 +570,7 @@ class AVLPeliculas{
       this.etiquetas = ""
       this.textoHTML = ""
       this.peliculaEncontrada = null;
+      this.nuevo = null;
     }
     
     max(hi, hd){
@@ -263,6 +590,8 @@ class AVLPeliculas{
       this.raiz = this._insertar(pelicula, this.raiz)
 
     }
+
+    
     
     _insertar(pelicula, nodo){
       if(nodo == null) {
@@ -276,11 +605,11 @@ class AVLPeliculas{
         
       else{
 
-        if(pelicula.nombre_pelicula < nodo.pelicula.nombre_pelicula){
+        if(pelicula.id_pelicula < nodo.pelicula.id_pelicula){
           nodo.izquierda = this._insertar(pelicula, nodo.izquierda)
           if(this.altura(nodo.derecha)-this.altura(nodo.izquierda) == -2){
             
-              if(pelicula.nombre_pelicula < nodo.izquierda.pelicula.nombre_pelicula){
+              if(pelicula.id_pelicula < nodo.izquierda.pelicula.id_pelicula){
                   nodo = this.RotacionSimpleDerecha(nodo);
                   
               }
@@ -289,11 +618,11 @@ class AVLPeliculas{
               }
               
           }
-        }else if(pelicula.nombre_pelicula > nodo.pelicula.nombre_pelicula){
+        }else if(pelicula.id_pelicula > nodo.pelicula.id_pelicula){
           nodo.derecha = this._insertar(pelicula, nodo.derecha);
           if(this.altura(nodo.derecha)-this.altura(nodo.izquierda)== 2){
               
-              if(pelicula.nombre_pelicula > nodo.derecha.pelicula.nombre_pelicula){
+              if(pelicula.id_pelicula > nodo.derecha.pelicula.id_pelicula){
                   nodo = this.RotacionSimpleIzquierda(nodo);
               }else{
                   nodo = this.RotacionDobleDerecha(nodo);
@@ -345,7 +674,7 @@ class AVLPeliculas{
       this._tablaAZ(nodo.izquierda)
       }
 
-      this.textoHTML += `<TR> <td> <h1>` +nodo.pelicula.nombre_pelicula+`</h1></td>`+
+      this.textoHTML += `<TR><td>`+nodo.pelicula.id_pelicula+`</td>  <td><h1>` +nodo.pelicula.nombre_pelicula+`</h1></td>`+
       `<td><b>Descripcion: </b>`+nodo.pelicula.descripcion+`</td>`+
       `<td><button class="info-peli" id="info-peli" value= "`+nodo.pelicula.nombre_pelicula+`"> <i class="bi bi-question-circle-fill"></i> <br>Informacion</button>    `+
       `<button class="alquilar-peli" id="alquilar-peli" value= "`+nodo.pelicula.nombre_pelicula+`"><i class="bi bi-cart3"></i><br>Alquilar</button></TD> `+
@@ -361,7 +690,7 @@ class AVLPeliculas{
         this._tablaZA(nodo.derecha)
         }
   
-        this.textoHTML += `<TR> <td> <h1>` +nodo.pelicula.nombre_pelicula+`</h1></td>`+
+        this.textoHTML += `<TR> <td>`+nodo.pelicula.id_pelicula+`</td> <td> <h1>` +nodo.pelicula.nombre_pelicula+`</h1></td>`+
         `<td><b>Descripcion: </b>`+nodo.pelicula.descripcion+`</td>`+
         `<td><button class="info-peli" id="info-peli" value= "`+nodo.pelicula.nombre_pelicula+`"> <i class="bi bi-question-circle-fill"></i> <br>Informacion</button> `+
         `<button class="alquilar-peli" id="alquilar-peli" value= "`+nodo.pelicula.nombre_pelicula+`"><i class="bi bi-cart3"></i><br>Alquilar</button></TD> `+
@@ -436,6 +765,41 @@ class AVLPeliculas{
 
     }
 
+    _removeNode(target, node=this.raiz) {
+      // Encuentra el nodo padre del nodo eliminado
+      if(node.izquierda !== target && node.derecha !== target){
+          if(node.pelicula.nombre_pelicula > target.pelicula.nombre_pelicula){
+              return this._removeNode(target, node.izquierda)
+          }else{
+              return this._removeNode(target, node.derecha)
+          }
+      }
+      if(target.izquierda === null && target.derecha === null){
+          // El nodo eliminado no tiene hijos
+          return node.izquierda === target ? node.izquierda = null : node.derecha = null
+      }else if(target.izquierda === null || target.derecha === null){
+          // El nodo eliminado contiene solo un nodo hijo
+          const son = target.izquierda === null ? target.derecha : target.izquierda
+          return node.izquierda === target ? node.izquierda = son : node.derecha = son
+      }else if(target.izquierda !== null && target.derecha !== null){
+        // El nodo eliminado contiene dos nodos secundarios
+        const displace = this._getMin(target.derecha)
+        return node.izquierda === target ? node.izquierda = displace : node.derecha = displace
+      }
+  }
+  _getMin(node) { 
+    if(node.izquierda === null){ return node }
+    return this._getMin(node.izquierda) 
+  }
+  remove(nombre_pelicula) {
+      const target = this.buscarPelicula(nombre_pelicula)
+      if(target === this.raiz){
+          throw 'Función eliminar: no se puede eliminar el nodo raíz'
+      }
+      this._removeNode(target)
+      return this
+  }
+
     _graficar(nodo){
         
       if(nodo.izquierda!=null){
@@ -446,7 +810,7 @@ class AVLPeliculas{
           this.conexiones += `n`+nodo.id+` -> null`+nodo.id+ `I;\n`;
       }
 
-      this.etiquetas += `n`+nodo.id+` [label="`+nodo.pelicula.nombre_pelicula+`"]\n`;
+      this.etiquetas += `n`+nodo.id+` [label="`+nodo.pelicula.nombre_pelicula+`\nID: `+nodo.pelicula.id_pelicula+`"]\n`;
 
       if (nodo.derecha!=null) {
           this._graficar(nodo.derecha);
@@ -957,6 +1321,18 @@ function goAdmin() {
 
 }
 
+function goBlockChain() {
+  
+  var divTodos = document.querySelectorAll('.ventana');
+  
+  divTodos.forEach(element => {
+      element.style.display = "none";
+  });
+  var div = document.getElementById('div-blockchain')
+  div.style.display = "block";
+
+}
+
 function goUser() {
   
   var divTodos = document.querySelectorAll('.ventana');
@@ -1112,6 +1488,16 @@ function ocultarLogin() {
 
 
 //#region Llamadas Botones
+function generarBloque() {
+  if (blockChain.contadorBloques < merkleData.datablock.length) {
+    blockChain.add((merkleData.datablock[blockChain.contadorBloques]).valor);
+  } else {
+    blockChain.add("Sin Transacciones");
+  }
+  cuentaAtras = tiempoGen;
+  blockChain.graficar();
+
+}
 
 function llamarVerificarLogin() {
   listaClientes.verificarUserYPass();
@@ -1161,7 +1547,23 @@ function botonesTablaPelis() {
   var btnsAlquilar = document.querySelectorAll("#alquilar-peli");
   btnsAlquilar.forEach(btn => {
     btn.addEventListener('click', (event) => {
-      alert(btn.value + " Alquilada ");
+
+      var aux = merkleData.datablock;
+      merkleData = new Merkle();
+      aux.forEach(tmp => {
+        if ((tmp.valor).toString().substring(0,2)!=`00`) {
+          merkleData.add(tmp.valor);
+          
+        }
+      });
+
+      merkleData.add(usuarioLogeado + `-` + btn.value);
+      merkleData.auth();
+      merkleData.graficar();
+      //avlPeliculas = avlPeliculas.remove(btn.value);
+      btn.disabled = true;
+      alert(btn.value + "Pelicula Alquilada ");
+
     });
   });
 
@@ -1219,6 +1621,20 @@ document.getElementById("btn-actores").onclick = goActores;
 document.getElementById("btn-categorias").onclick = goCategorias;
 document.getElementById("btn-logear").onclick = llamarVerificarLogin;
 document.getElementById("btn-logout").onclick = logout;
+document.getElementById("btn-go-blockchain").onclick = goBlockChain;
+
+
+document.getElementById("btn-generar-bloque").onclick = generarBloque;
+
+document.getElementById("btn-cambiar-tiempo").addEventListener('click', (event) => {
+  var valor = document.getElementById("txt-segs").value;
+  if (valor == "") {
+    alert("Ingrese un valor en el campo de texto");
+  }else{
+    tiempoGen = valor;
+    cuentaAtras = tiempoGen;
+  }
+});
 
 document.getElementById("mostrar-grafo-actores").addEventListener('click', (event) => {
 
@@ -1349,6 +1765,11 @@ var hashCategorias =  new HashCategorias(20);
 var arbolActores = new ArbolActores();
 var avlPeliculas = new AVLPeliculas();
 var listaClientes = new ListaClientes();
+var merkleData = new Merkle()
+var blockChain = new BlockChain();
+
+
+
 listaClientes.add({
     "dpi":2354168452525, 
     "nombre_completo": "Wilfred Perez", 
@@ -1364,15 +1785,13 @@ goHome();
 document.getElementById("btn-logout").style.display = "none";
 
 
+window.setInterval(function(){
+   cuentaAtras--;
+   document.getElementById('tiempo-restante').innerHTML=cuentaAtras;
+   if (cuentaAtras==0) {
+    generarBloque();
+   }
 
-
-
-
-
-
-
-
-
-
+}, 1000) // tiempo en milisegundo 
 
 

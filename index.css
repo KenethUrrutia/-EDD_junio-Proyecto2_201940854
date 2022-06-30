@@ -616,10 +616,26 @@ input[type=text], input[type=password] {
     padding: 5px;
 }
 
+#txt-segs{
+    width: 70px;
+    height: 42px;
+}
+#btn-cambiar-tiempo{
+    width: 200px;
+}
+#btn-generar-bloque{
+    background-color: #3f003c;
+    width: 300px;
+
+}
 
 
-
-
+#btn-go-blockchain{
+    width: 230px;
+    float: right;
+    margin: 50px;
+    margin-top: 0;
+}
 
 
 

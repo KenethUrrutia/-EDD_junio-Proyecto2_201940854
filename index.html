@@ -62,8 +62,10 @@
 
     
     <div id="div-admin" class="ventana">
-        <br>
-        <br>
+        <div>
+            <button  id="btn-go-blockchain" >Blockchain</button>
+        </div>
+        <br><br><br>
         <table style="width: 100%;">
             <tr>
                 <td>
@@ -179,8 +181,8 @@
                         <td>
                             <label for="cbb-ordenar"> <b>Ordenar </b>
                             <select id="cbb-ordenar" class="custom-select" style="width:100px;">
-                                <option value="0">A - Z</option>
-                                <option value="1">Z - A</option>
+                                <option value="0">1-9 ⇧</i></option>
+                                <option value="1">9-1 ⇩</i></option>
                             </select>
                             </label>
                         </td>
@@ -251,6 +253,47 @@
         <div id="tabla-categorias" class="container-tabla-actores"></div>
         <br><br>
     </div>
+    
+
+    <div id="div-blockchain" class="ventana">
+        <br><br>
+        <center>
+            <table style="width:100%;  border: solid 2px #3f003c; padding: 2rem;">
+                <tr>
+                    <td >
+                        <center>
+                            <input type="number"  id="txt-segs">
+                            <button  id="btn-cambiar-tiempo" >Modificar tiempo</button>
+                        </center>
+                    </td>
+                    <td>
+                        <center>
+                            <button  id="btn-generar-bloque" >Generar bloque ahora</button>
+                        </center>
+                    </td>
+                </tr>
+            </table>
+            <table  style="width:100%; ">
+                <tr>
+                    <td style="width:100%;  border: solid 2px #3f003c; padding: 1rem;" id="td-blockchain">
+                        <center>Nuevo bloque en<h1 id="tiempo-restante"></h1></center>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:100%;  border: solid 2px #3f003c; padding: 1rem;" id="td-blockchain">
+                        <div id="lienzoBlockChain"></div>
+                    </td>
+                </tr>
+                <tr >
+                    <td style="width:100%;  border: solid 2px #3f003c; padding: 1rem;" id="td-merkle">
+                        <div id="lienzoMerkle"></div>
+                    </td>
+                </tr>
+            </table>
+        </center>
+        <br><br>
+    </div>
+
 
     <script src="./index.js"></script>
 
