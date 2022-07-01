@@ -178,7 +178,6 @@ class NodoCategoria{
 class NodoData{
   constructor(valor){
     this.valor = valor;
-    
     this.id = 0;
   }
 }
@@ -370,7 +369,6 @@ class Merkle {
 
 
   }
-
 
   _graficar(tmp){
     if (tmp != null) {
@@ -598,8 +596,6 @@ class AVLPeliculas{
 
     }
 
-    
-    
     _insertar(pelicula, nodo){
       if(nodo == null) {
 
@@ -648,8 +644,6 @@ class AVLPeliculas{
 
     }
 
-    
-    
     _insertar2(pelicula, nodo, comentarios){
       if(nodo == null) {
 
@@ -822,8 +816,6 @@ class AVLPeliculas{
 
 
     }
-
-   
 
     _graficar(nodo){
         
