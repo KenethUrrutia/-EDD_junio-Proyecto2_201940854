@@ -264,7 +264,7 @@ class BlockChain{
     console.log(codigoDot);
     d3.select("#lienzoBlockChain")
       .graphviz()
-        .height(550)
+        .height(300)
         .width(1200)
         .dot(codigoDot)
         .render();
@@ -1538,6 +1538,17 @@ function ocultarLogin() {
 
 }
 
+function goManuales() {
+  var divTodos = document.querySelectorAll('.ventana');
+  
+  divTodos.forEach(element => {
+      element.style.display = "none";
+  });
+  var div = document.getElementById('div-manuales')
+  div.style.display = "block";
+
+}
+
 //#endregion
 
 
@@ -1741,6 +1752,7 @@ document.getElementById("btn-categorias").onclick = goCategorias;
 document.getElementById("btn-logear").onclick = llamarVerificarLogin;
 document.getElementById("btn-logout").onclick = logout;
 document.getElementById("btn-go-blockchain").onclick = goBlockChain;
+document.getElementById("btn-manuales").onclick = goManuales;
 
 
 document.getElementById("btn-generar-bloque").onclick = generarBloque;
