@@ -115,10 +115,10 @@
             <td>
                 <div class="card-botones">
                     <br>
-                    <button id="mostrar-grafo-peliculas" type="button" class="btn-X btn-grafo">Grafo peliculas</button>
-                    <button id="mostrar-grafo-clientes" type="button" class="btn-X btn-grafo">Grafo clientes</button>
-                    <button id="mostrar-grafo-actores" type="button" class="btn-X btn-grafo">Grafo actores</button>
-                    <button id="mostrar-grafo-categorias" type="button" class="btn-X btn-grafo">Grafo categorias</button>
+                    <button id="mostrar-grafo-peliculas" type="button" value="mostrar-peliculas" class="btn-X btn-grafo">Grafo peliculas</button>
+                    <button id="mostrar-grafo-clientes" type="button" value="mostrar-clientes" class="btn-X btn-grafo">Grafo clientes</button>
+                    <button id="mostrar-grafo-actores" type="button" value="mostrar-actores" class="btn-X btn-grafo">Grafo actores</button>
+                    <button id="mostrar-grafo-categorias" type="button" value="mostrar-categorias" class="btn-X btn-grafo">Grafo categorias</button>
                 </div>
             </td>
             <td>
@@ -130,6 +130,7 @@
                 <div class="div-btn-descarga">
                     <button id="descargarGrafo" type="button" class="btn-X-active">Descargar</button>
                     <br>
+                    <button id="descargarGrafoSVG" type="button" class="btn-X-active">Descargar SVG</button>
                     
                 </div>
             </td>
@@ -187,8 +188,8 @@
                             </label>
                         </td>
                         <td>
-                            <button  id="btn-actores" ><i class="bi bi-person-rolodex"></i> Ver Actores</button>
-                            <button  id="btn-categorias" ><i class="bi bi-person-rolodex"></i> Ver Categorias</button>
+                            <button  id="btn-actores" ><i class="bi bi-person-video2"></i> Ver Actores</button>
+                            <button  id="btn-categorias" ><i class="bi bi-bookmarks"></i> Ver Categorias</button>
                         </td>
                     </tr>
                 </table>
@@ -206,6 +207,7 @@
             <br>
             <p id="descripcion-peli"></p>
             <br><br><br>
+            
             <div id="container-valoracion"> 
                 <table>
                     <tr>
@@ -262,7 +264,7 @@
                 <tr>
                     <td >
                         <center>
-                            <input type="number"  id="txt-segs">
+                            <input type="number"  id="txt-segs">segundos
                             <button  id="btn-cambiar-tiempo" >Modificar tiempo</button>
                         </center>
                     </td>
@@ -296,6 +298,7 @@
 
 
     <script src="./index.js"></script>
+
 
 </body>
 </html>

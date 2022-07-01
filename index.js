@@ -10,8 +10,8 @@ var contadorBloquesTransaccion = 0;
 var currentTime = new Date();
 
 
-var tiempoGen = 100;
-var cuentaAtras = 100;
+var tiempoGen = 300;
+var cuentaAtras = 300;
 
 function sha256(ascii) {
 	function rightRotate(value, amount) {
@@ -222,11 +222,13 @@ class BlockChain{
     tempo.nonce = 0;
     if (this.cabeza!=null) {
       tempo.previous = this.cabeza.hash;
+    }else{
+      tempo.previous = "00";
     }
     if (merkleData.tophash!=null) {
       tempo.rootMerkle = merkleData.tophash.hash;
     }else{
-      tempo.rootMerkle = `00x`
+      tempo.rootMerkle = `00`
     }
     var hash = `XXXX`;
     while (hash.substring(0, 2) != `00`) {
@@ -245,16 +247,16 @@ class BlockChain{
     var conexiones = "";
     var etiquetas = "";
     var tempo = this.cabeza;
-    var contador = this.contadorBloques;
+    var contador = totalBloques;
 
-    while (tempo != null && contador>0) {
-      etiquetas += `B`+contador+` [label = " Bloque `+ contador +`| Hash: `+tempo.hash+` | Previous: `+tempo.previous+` | RootMerkle: `+tempo.rootMerkle+` | Transacciones:\n `+tempo.data+` | Fecha: `+ tempo.timeStamp+`" ];\n` ;
+    while (tempo != null) {
+      etiquetas += `B`+tempo.hash+` [label = " Bloque `+ contador +`| Hash: `+tempo.hash+` | Previous: `+tempo.previous+` | RootMerkle: `+tempo.rootMerkle+` | Transacciones:\n `+tempo.data+` | Fecha: `+ tempo.timeStamp+`" ];\n` ;
 
       if (tempo.siguiente != null) {
-        conexiones += `B`+contador + ` -> B`+ (contador-1) +`;\n`;
+        conexiones += `B`+tempo.hash + ` -> B`+ (tempo.siguiente.hash) +`;\n`;
       }
-
       contador--;
+      
       tempo = tempo.siguiente
     }
     codigoDot += etiquetas + conexiones + `\n } \n`
@@ -269,7 +271,6 @@ class BlockChain{
   }
 
 }
-
 
 class Merkle {
   constructor() {
@@ -363,7 +364,7 @@ class Merkle {
     d3.select("#lienzoMerkle")
       .graphviz()
         .height(550)
-        .width(800)
+        .width(1200)
         .dot(codigoDot)
         .render();
 
@@ -374,6 +375,8 @@ class Merkle {
   _graficar(tmp){
     if (tmp != null) {
       this._graficar(tmp.izquierda)
+      this._graficar(tmp.derecha)
+
       if (tmp.izquierda != null){
         if (tmp.izquierda instanceof NodoData) {
           this.etiquetas += `N`+tmp.izquierda.id + ` [label="`+tmp.izquierda.valor+`"; width = 2;];\n`
@@ -386,7 +389,7 @@ class Merkle {
         
       }
       
-      this._graficar(tmp.derecha)
+      
     }
   }
 
@@ -427,9 +430,9 @@ class IndiceHashCategorias{
 
           return;
         } else {
-
           while (temporalCategoria != null) {
-            if (temporalCategoria.siguiente == null) {
+            
+            if (temporalCategoria.siguiente == null ) {
               var nuevo  = new NodoCategoria(categoria);
               nuevo.id = temporalCategoria.id+1;
               temporalCategoria.siguiente = nuevo;
@@ -539,7 +542,7 @@ class HashCategorias{
           let idCategoria = temporalCategoria.id;
           let idCategoriaSig = temporalCategoria.siguiente.id;
 
-          etiquetas += `I`+indexIndice+`C`+idCategoriaSig+ ` [label = "`+temporalCategoria.categoria.company+`" height = 0.1 width= 2] \n`;
+          etiquetas += `I`+indexIndice+`C`+idCategoriaSig+ ` [label = "`+temporalCategoria.siguiente.categoria.company+`" height = 0.1 width= 2] \n`;
           conexiones += `I`+indexIndice+`C`+idCategoria + ` -> I`+indexIndice+`C`+idCategoriaSig +`\n` ;
         }
           
@@ -564,7 +567,6 @@ class HashCategorias{
 
   }
 }
-
 
 class AVLPeliculas{
 
@@ -641,6 +643,57 @@ class AVLPeliculas{
       return nodo;
     }
 
+    insertar2(pelicula, comentarios){
+      this.raiz = this._insertar2(pelicula, this.raiz, comentarios)
+
+    }
+
+    
+    
+    _insertar2(pelicula, nodo, comentarios){
+      if(nodo == null) {
+
+        var nuevo = new NodoPelicula(pelicula);
+        nuevo.comentarios = comentarios;
+        nuevo.id = this.contador;
+        this.contador++;
+        return  nuevo
+      }
+
+        
+      else{
+
+        if(pelicula.id_pelicula < nodo.pelicula.id_pelicula){
+          nodo.izquierda = this._insertar2(pelicula, nodo.izquierda,comentarios)
+          if(this.altura(nodo.derecha)-this.altura(nodo.izquierda) == -2){
+            
+              if(pelicula.id_pelicula < nodo.izquierda.pelicula.id_pelicula){
+                  nodo = this.RotacionSimpleDerecha(nodo);
+                  
+              }
+              else{
+                  nodo = this.RotacionDobleIzquierda(nodo);
+              }
+              
+          }
+        }else if(pelicula.id_pelicula > nodo.pelicula.id_pelicula){
+          nodo.derecha = this._insertar2(pelicula, nodo.derecha, comentarios);
+          if(this.altura(nodo.derecha)-this.altura(nodo.izquierda)== 2){
+              
+              if(pelicula.id_pelicula > nodo.derecha.pelicula.id_pelicula){
+                  nodo = this.RotacionSimpleIzquierda(nodo);
+              }else{
+                  nodo = this.RotacionDobleDerecha(nodo);
+              }
+          }
+        }else{
+            nodo.pelicula = pelicula;
+        }
+      }
+      nodo.altura = this.max(this.altura(nodo.izquierda),this.altura(nodo.derecha))+1
+      return nodo;
+    }
+
     RotacionSimpleDerecha(nodo){
       
         var aux = nodo.izquierda;
@@ -683,7 +736,7 @@ class AVLPeliculas{
       `<td><b>Descripcion: </b>`+nodo.pelicula.descripcion+`</td>`+
       `<td><button class="info-peli" id="info-peli" value= "`+nodo.pelicula.nombre_pelicula+`"> <i class="bi bi-question-circle-fill"></i> <br>Informacion</button>    `+
       `<button class="alquilar-peli" id="alquilar-peli" value= "`+nodo.pelicula.nombre_pelicula+`"><i class="bi bi-cart3"></i><br>Alquilar</button></TD> `+
-      `<td><b> Q`+nodo.pelicula.precion_Q+`.00</b></td></TR>`;
+      `<td><b> Q`+nodo.pelicula.precio_Q+`.00</b></td></TR>`;
 
       if (nodo.derecha!=null) {
       this._tablaAZ(nodo.derecha);
@@ -699,7 +752,7 @@ class AVLPeliculas{
         `<td><b>Descripcion: </b>`+nodo.pelicula.descripcion+`</td>`+
         `<td><button class="info-peli" id="info-peli" value= "`+nodo.pelicula.nombre_pelicula+`"> <i class="bi bi-question-circle-fill"></i> <br>Informacion</button> `+
         `<button class="alquilar-peli" id="alquilar-peli" value= "`+nodo.pelicula.nombre_pelicula+`"><i class="bi bi-cart3"></i><br>Alquilar</button></TD> `+
-        `<td><b> Q`+nodo.pelicula.precion_Q+`.00</b></td></TR>`;
+        `<td><b> Q`+nodo.pelicula.precio_Q+`.00</b></td></TR>`;
   
         if (nodo.izquierda!=null) {
         this._tablaZA(nodo.izquierda);
@@ -770,40 +823,7 @@ class AVLPeliculas{
 
     }
 
-    _removeNode(target, node=this.raiz) {
-      // Encuentra el nodo padre del nodo eliminado
-      if(node.izquierda !== target && node.derecha !== target){
-          if(node.pelicula.nombre_pelicula > target.pelicula.nombre_pelicula){
-              return this._removeNode(target, node.izquierda)
-          }else{
-              return this._removeNode(target, node.derecha)
-          }
-      }
-      if(target.izquierda === null && target.derecha === null){
-          // El nodo eliminado no tiene hijos
-          return node.izquierda === target ? node.izquierda = null : node.derecha = null
-      }else if(target.izquierda === null || target.derecha === null){
-          // El nodo eliminado contiene solo un nodo hijo
-          const son = target.izquierda === null ? target.derecha : target.izquierda
-          return node.izquierda === target ? node.izquierda = son : node.derecha = son
-      }else if(target.izquierda !== null && target.derecha !== null){
-        // El nodo eliminado contiene dos nodos secundarios
-        const displace = this._getMin(target.derecha)
-        return node.izquierda === target ? node.izquierda = displace : node.derecha = displace
-      }
-  }
-  _getMin(node) { 
-    if(node.izquierda === null){ return node }
-    return this._getMin(node.izquierda) 
-  }
-  remove(nombre_pelicula) {
-      const target = this.buscarPelicula(nombre_pelicula)
-      if(target === this.raiz){
-          throw 'Función eliminar: no se puede eliminar el nodo raíz'
-      }
-      this._removeNode(target)
-      return this
-  }
+   
 
     _graficar(nodo){
         
@@ -942,7 +962,7 @@ class ArbolActores{
       if ( temporal != null) {
           while (!agregado) {
               
-              if (actor.nombre_actor < temporal.actor.nombre_actor) {
+              if (actor.dni < temporal.actor.dni) {
                   if(temporal.izquierda == null){
                       temporal.izquierda = nuevoNodo;
                       nuevoNodo.id = this.contador
@@ -985,7 +1005,7 @@ class ArbolActores{
           this.conexiones += `n`+nodo.id+` -> null`+nodo.id+ `I;\n`;
       }
 
-      this.etiquetas += `n`+nodo.id+` [label="`+nodo.actor.nombre_actor+`"]\n`;
+      this.etiquetas += `n`+nodo.id+` [label="`+nodo.actor.nombre_actor+`\n`+nodo.actor.dni+`"]\n`;
 
       if (nodo.derecha!=null) {
           this._graficar(nodo.derecha);
@@ -1088,6 +1108,34 @@ class ArbolActores{
 
   }
 
+}
+
+var nuevoAVL = new AVLPeliculas();
+
+
+
+function _restart(nombre_pelicula, nodo) {
+  
+    if(nodo.izquierda!=null){
+      _restart(nombre_pelicula, nodo.izquierda)
+    }
+    if (nombre_pelicula != nodo.pelicula.nombre_pelicula) {
+      
+      nuevoAVL.insertar2(nodo.pelicula, nodo.comentarios);
+      
+    }
+    if (nodo.derecha!=null) {
+      _restart(nombre_pelicula, nodo.derecha);
+    }
+  
+  
+}
+
+function restart(nombre_pelicula) {
+  nuevoAVL = new AVLPeliculas();
+  _restart(nombre_pelicula, avlPeliculas.raiz)
+  avlPeliculas = nuevoAVL;
+  llenarTablaPelis();
 }
 
 //#endregion
@@ -1425,6 +1473,8 @@ function goInfoPeli(nombre_pelicula) {
   var div = document.getElementById('div-info-peli')
   div.style.display = "block";
 
+  
+
 }
 
 function logout() {
@@ -1492,22 +1542,27 @@ function ocultarLogin() {
 
 
 //#region Llamadas Botones
+var totalBloques = 0;
 function generarBloque() {
   if (contadorBloquesTransaccion <= contadorAlquilados && blockChain.contadorBloques < merkleData.datablock.length) {
     var valor = (merkleData.datablock[contadorBloquesTransaccion]).valor
     if (valor.toString().substring(0,2) != `00`) {
+      console.log("1");
       blockChain.add(valor);
     }else{
       blockChain.add("Sin Transacciones");
+      console.log("2");
 
     }
     contadorBloquesTransaccion++;
     blockChain.contadorBloques++;
     
   } else {
+    console.log("3");
     blockChain.add("Sin Transacciones");
   }
   cuentaAtras = tiempoGen;
+  totalBloques++;
   blockChain.graficar();
 
 }
@@ -1576,6 +1631,8 @@ function botonesTablaPelis() {
       btn.disabled = true;
       contadorAlquilados++;
       
+      restart(btn.value);
+
       alert(btn.value + "Pelicula Alquilada ");
 
     });
@@ -1598,6 +1655,60 @@ function crearTablaComentarios() {
   
 }
 
+var canvas = document.querySelector('canvas');
+
+function downloadImg() {
+  const svgElem = document.querySelector('svg')
+  const serializer = new XMLSerializer();
+  let svgData = serializer.serializeToString(svgElem);
+  svgData = '<?xml version="1.0" standalone="no"?>\r\n' + svgData;
+  const svgBlob = new Blob([svgData], {
+    type: 'image/svg+xml;charset=utf-8',
+  });
+  let DOMURL = window.URL || window.webkitURL || window;
+  const url = DOMURL.createObjectURL(svgBlob);
+
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const domRect = svgElem.getBBox();
+    
+      canvas.width = 800*5;
+      canvas.height = 550*5;
+      ctx.drawImage(img, 0, 0, 800*5, 550*5);
+    
+    
+    DOMURL.revokeObjectURL(url);
+
+    const imgURI = canvas
+      .toDataURL('image/png')
+      .replace('image/png', 'image/octet-stream');
+
+    download(imgURI);
+  };
+  img.onerror = (e) => {
+    console.error('Image not loaded', e);
+  };
+
+  img.src = url;
+}
+
+function download(href) {
+  let download = document.createElement('a');
+  download.href = href;
+  download.download = 'img.png';
+  download.click();
+  download.remove();
+}
+
+var slider = document.getElementById("num-valoracion");
+var output = document.getElementById("valor-valoracion");
+output.innerHTML = slider.value;
+slider.oninput = function() {
+  output.innerHTML = this.value;
+}
+
 let triggerDownload = (imgURI, fileName) => {
   let a = document.createElement('a')
 
@@ -1617,12 +1728,6 @@ let svg = document.querySelector('svg')
   triggerDownload(url)
 }
 
-var slider = document.getElementById("num-valoracion");
-var output = document.getElementById("valor-valoracion");
-output.innerHTML = slider.value;
-slider.oninput = function() {
-  output.innerHTML = this.value;
-}
 
 //#endregion
 
@@ -1657,7 +1762,13 @@ document.getElementById("mostrar-grafo-actores").addEventListener('click', (even
     element.classList.remove("btn-X-active")
   });
   event.target.classList.add("btn-X-active")
-  arbolActores.graficar("lienzo")
+  try {
+    arbolActores.graficar("lienzo")
+    
+  } catch (error) {
+    
+  }
+  
 
 });
 
@@ -1668,7 +1779,12 @@ document.getElementById("mostrar-grafo-clientes").addEventListener('click', (eve
     element.classList.remove("btn-X-active")
   });
   event.target.classList.add("btn-X-active")
-  listaClientes.graficar("lienzo")
+  try {
+    listaClientes.graficar("lienzo")
+  } catch (error) {
+    
+  }
+  
 
 });
 
@@ -1680,7 +1796,13 @@ document.getElementById("mostrar-grafo-peliculas").addEventListener('click', (ev
   });
   event.target.classList.add("btn-X-active")
 
-  avlPeliculas.graficar("lienzo")
+  try {
+    avlPeliculas.graficar("lienzo");    
+    
+  } catch (error) {
+    
+  }
+  
 
 });
 
@@ -1691,8 +1813,12 @@ document.getElementById("mostrar-grafo-categorias").addEventListener('click', (e
     element.classList.remove("btn-X-active")
   });
   event.target.classList.add("btn-X-active")
-
-  hashCategorias.graficar("lienzo");
+  try {
+    hashCategorias.graficar("lienzo");
+    
+  } catch (error) {
+    
+  }
 
 });
 
@@ -1787,7 +1913,9 @@ document.getElementById("btn-comentar").addEventListener('click', (event) => {
   document.getElementById("new-comentario").value = "";
 } );
 
-document.getElementById("descargarGrafo").addEventListener('click', save);
+document.getElementById("descargarGrafo").addEventListener('click', downloadImg);
+document.getElementById("descargarGrafoSVG").addEventListener('click', save);
+
 
 //#endregion
 
