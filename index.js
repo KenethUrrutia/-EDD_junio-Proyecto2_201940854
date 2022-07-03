@@ -1552,12 +1552,13 @@ function generarBloque() {
     if (valor.toString().substring(0,2) != `00`) {
       console.log("1");
       blockChain.add(valor);
+      contadorBloquesTransaccion++;
+
     }else{
       blockChain.add("Sin Transacciones");
       console.log("2");
 
     }
-    contadorBloquesTransaccion++;
     blockChain.contadorBloques++;
     
   } else {
